@@ -1,17 +1,17 @@
 '''
 Created on 19 Mar 2017
 
-@author: alice<aliceinnets@gmail.com>
+@author: alice<aliceinnets[at]gmail.com>
 '''
 
 import numpy as np
 import tensorflow as tf
-
-
+    
 def main():
     play_tensor()
 #     play_basic()
     play_model()
+
 
 def play_model():
     estimator = tf.contrib.learn.Estimator(model_fn=model)
@@ -41,10 +41,7 @@ def model(features, labels, mode):
                      tf.assign_add(global_step, 1))
     # ModelFnOps connects subgraphs we built to the
     # appropriate functionality.
-    return tf.contrib.learn.ModelFnOps(
-        mode=mode, predictions=y,
-        loss=loss,
-        train_op=train)
+    return tf.contrib.learn.ModelFnOps(mode=mode, predictions=y,loss=loss,train_op=train)
 
 
 def play_basic():
@@ -121,10 +118,10 @@ def play_tensor():
     train = optimizer.minimize(loss)
     
     sess.run(init)
-    for i in range(1000):
+    for _ in range(1000):
         sess.run(train, {x: [1,2,3,4], y: [0,-1,-2,-3]})
         
     print(sess.run([W, b]))
 
+if __name__ == '__main__': main()
 
-main()

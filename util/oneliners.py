@@ -1,39 +1,69 @@
 '''
 Created on 23 Mar 2017
 
-@author: alice<aliceinnets@gmail.com>
+@author: alice<aliceinnets[at]gmail.com>
 '''
 import os
 import numpy as np
 
-class Struct:
-    def __tostr__(self):
-        return self.dda+'/'+self.dtype
+results_path = os.path.expanduser('~')+'/results/'
+test_results_path = os.path.expanduser('~')+'/temp/'
+data_path = os.path.expanduser('~')+'/data/'
 
-def loadfiles_as_dict(path,ext):
-    files = [f for f in os.listdir(path) if f.endswith('.'+ext)]
+class struct:
+    def __init__(self, **kwds):
+        self.__dict__.update(kwds)
     
-    dict = {}
+    def keys(self):
+        return [name for name in vars(self) if not name.startswith('_')]
+        
+
+def loadtxts_to_dict(path):
+    path += '/'
+    files = [f for f in os.listdir(path) if f.endswith('.txt')]
+    
+    data = {}
     for i in range(0,len(files)):
         name = os.path.splitext(files[i])[0]
-        dict[name] = np.loadtxt(path+'/'+files[i])
+        data[name] = np.loadtxt(path+'/'+files[i])
     
-    return dict
-    
+    return data
 
-def loadtxts_as_dict(path):
-    return loadfiles_as_dict(path, 'txt')
-
-def loadfiles_as_struct(path,ext):
-    path = path+'/'
-    files = [f for f in os.listdir(path) if f.endswith('.'+ext)]
+def loadtxts_to_struct(path):
+    path += '/'
+    files = [f for f in os.listdir(path) if f.endswith('.txt')]
     
-    struct = Struct()
+    data = struct()
     for i in range(0,len(files)):
         name = os.path.splitext(files[i])[0]
-        exec('struct.'+name+' = np.loadtxt(path+files[i])')
+        exec('data.'+name+' = np.loadtxt(path+files[i])')
     
-    return struct
+    return data
 
-def loadtxts_as_struct(path):
-    return loadfiles_as_struct(path, 'txt')
+def savetxts_from_dict(path, data):
+    path += '/'
+    if not os.path.exists(path):
+        os.makedirs(path)
+    
+    for name in data.keys():
+        np.savetxt(path+str(name)+'.txt', data[name])
+
+def savetxts_from_struct(path, data):
+    path += '/'
+    if not os.path.exists(path):
+        os.makedirs(path)
+    
+    for name in data.keys():
+        exec('np.savetxt(path+\''+name+'.txt\', data.'+name+')')
+
+def remove_all(path):
+    if os.path.exists(path):
+        for file in os.listdir(path):
+            if os.path.isfile(path+file):
+                os.remove(path+file)
+            else:
+                remove_all(path+file+'/')
+        os.rmdir(path)
+        
+    
+    
