@@ -27,7 +27,6 @@ def main():
 #     np.savetxt(oneliners.test_results_path+'ab.txt', param['b'].eval())
     
 #     training_adam_dropout(conv_model, mnist)
-#     run()
 
 def training(data, model, param):
     input_dim = np.size(data.train.next_batch(1)[0], 1)

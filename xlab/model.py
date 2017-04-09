@@ -5,7 +5,6 @@ Created on 1 Apr 2017
 '''
 
 import numpy as np
-import tensorflow as tf
 from abc import ABC, abstractmethod
 
 class model(ABC):
@@ -15,9 +14,15 @@ class model(ABC):
     
     def set_parameters(self, parameters):
         self.parameters = parameters
+        
+    def set_parameter(self, name, parameter):
+        self.parameters[name] = parameter
     
     def get_parameters(self):
         return self.parameters
+    
+    def get_parameter(self, name):
+        return self.parameter[name]
     
     @abstractmethod
     def init(self, *args):
