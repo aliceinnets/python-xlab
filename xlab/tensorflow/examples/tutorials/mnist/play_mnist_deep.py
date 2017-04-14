@@ -10,7 +10,7 @@ import numpy as np
 import util.oneliners as oneliners
 
 def main():
-    mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
+    mnist = input_data.read_data_sets('MNIST_data/', one_hot=True)
 #     param = {}
 #     training(mnist, simple_model, param)
 #     np.savetxt(oneliners.test_results_path+'aW.txt', param['W'].eval())
