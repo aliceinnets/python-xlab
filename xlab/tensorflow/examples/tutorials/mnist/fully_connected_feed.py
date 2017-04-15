@@ -110,6 +110,9 @@ def run_training():
         # Generate placeholders for the images and labels.
         images_placeholder, labels_placeholder = placeholder_inputs(FLAGS.batch_size)
         
+        x_image = tf.reshape(images_placeholder, [-1, 28, 28, 1])
+        tf.summary.image("input", x_image, 3)
+        
         # Build a Graph that computes predictions from the inference model.
         logits = mnist.inference(images_placeholder, FLAGS.hidden1, FLAGS.hidden2)
         

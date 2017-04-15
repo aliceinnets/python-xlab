@@ -6,9 +6,10 @@ Created on 23 Mar 2017
 import os
 import numpy as np
 
-results_path = os.path.expanduser('~')+'/results/'
-test_results_path = os.path.expanduser('~')+'/temp/'
-data_path = os.path.expanduser('~')+'/data/'
+home_path = os.path.expanduser('~')
+results_path = home_path+'/results/'
+test_results_path = home_path+'/temp/'
+data_path = home_path+'/data/'
 
 class struct:
     def __init__(self, **kwds):

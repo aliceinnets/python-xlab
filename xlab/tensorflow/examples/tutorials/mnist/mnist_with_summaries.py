@@ -26,6 +26,7 @@ from __future__ import print_function
 
 import argparse
 import sys
+import os
 
 import tensorflow as tf
 
@@ -107,6 +108,8 @@ def train():
     tf.summary.scalar('dropout_keep_probability', keep_prob)
     dropped = tf.nn.dropout(hidden1, keep_prob)
 
+  embedding_input = hidden1
+  embedding_size = 500    
   # Do not apply softmax activation yet, see below.
   y = nn_layer(dropped, 500, 10, 'layer2', act=tf.identity)
 
@@ -137,11 +140,24 @@ def train():
       accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
   tf.summary.scalar('accuracy', accuracy)
 
+  embedding = tf.Variable(tf.zeros([1024, embedding_size]), name="test_embedding")
+  assignment = embedding.assign(embedding_input)
+  saver = tf.train.Saver()
+
   # Merge all the summaries and write them out to /tmp/tensorflow/mnist/logs/mnist_with_summaries (by default)
   merged = tf.summary.merge_all()
   train_writer = tf.summary.FileWriter(FLAGS.log_dir + '/train', sess.graph)
   test_writer = tf.summary.FileWriter(FLAGS.log_dir + '/test')
   tf.global_variables_initializer().run()
+  
+  config = tf.contrib.tensorboard.plugins.projector.ProjectorConfig()
+  embedding_config = config.embeddings.add()
+  embedding_config.tensor_name = embedding.name
+  embedding_config.sprite.image_path = FLAGS.data_dir + 'sprite_1024.png'
+  embedding_config.metadata_path = FLAGS.data_dir + 'labels_1024.tsv'
+  # Specify the width and height of a single thumbnail.
+  embedding_config.sprite.single_image_dim.extend([28, 28])
+  tf.contrib.tensorboard.plugins.projector.visualize_embeddings(test_writer, config)
 
   # Train the model, and also write summaries.
   # Every 10th step, measure test-set accuracy, and write test summaries
@@ -176,6 +192,9 @@ def train():
       else:  # Record a summary
         summary, _ = sess.run([merged, train_step], feed_dict=feed_dict(True))
         train_writer.add_summary(summary, i)
+    if i % 500 == 0:
+      sess.run(assignment, feed_dict={x: mnist.test.images[:1024], y: mnist.test.labels[:1024]})
+      saver.save(sess, os.path.join(FLAGS.log_dir, "model.ckpt"), i)
   train_writer.close()
   test_writer.close()
 
@@ -192,15 +211,15 @@ if __name__ == '__main__':
   parser.add_argument('--fake_data', nargs='?', const=True, type=bool,
                       default=False,
                       help='If true, uses fake data for unit testing.')
-  parser.add_argument('--max_steps', type=int, default=1000,
+  parser.add_argument('--max_steps', type=int, default=2500,
                       help='Number of steps to run trainer.')
   parser.add_argument('--learning_rate', type=float, default=0.001,
                       help='Initial learning rate')
   parser.add_argument('--dropout', type=float, default=0.9,
                       help='Keep probability for training dropout.')
-  parser.add_argument('--data_dir', type=str, default=oneliners.test_results_path+'/tensorflow/mnist/input_data',
+  parser.add_argument('--data_dir', type=str, default=oneliners.test_results_path+'/tensorflow/mnist/input_data/',
                       help='Directory for storing input data')
-  parser.add_argument('--log_dir', type=str, default=oneliners.test_results_path+'/tensorflow/mnist/logs/mnist_with_summaries',
+  parser.add_argument('--log_dir', type=str, default=oneliners.test_results_path+'/tensorflow/mnist/logs/mnist_with_summaries3/',
                       help='Summaries log directory')
   FLAGS, unparsed = parser.parse_known_args()
   tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
