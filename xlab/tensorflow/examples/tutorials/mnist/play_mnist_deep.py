@@ -17,8 +17,8 @@ def main():
 #     np.savetxt(oneliners.test_results_path+'ab.txt', param['b'].eval())
     
     param = {}
-    param['W'] = np.loadtxt(oneliners.test_results_path+'aW.txt', np.float32)
-    param['b'] = np.loadtxt(oneliners.test_results_path+'ab.txt', np.float32)
+    param['W'] = np.loadtxt(oneliners.TEST_RESULTS_PATH+'aW.txt', np.float32)
+    param['b'] = np.loadtxt(oneliners.TEST_RESULTS_PATH+'ab.txt', np.float32)
     test(mnist, simple_model, param)
 #     training(mnist, simple_model, param)
 #     test(mnist, simple_model, param)

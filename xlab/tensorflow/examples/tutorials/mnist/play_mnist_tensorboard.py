@@ -9,22 +9,22 @@ import os
 import tensorflow as tf
 import util.oneliners as oneliners
 
-def conv_layer(input, channels_in, channels_out, name="conv"):
+def conv_layer(x, channels_in, channels_out, name="conv"):
     with tf.name_scope(name):
         w = tf.Variable(tf.truncated_normal([5, 5, channels_in, channels_out], stddev=0.1), name="W")
         b = tf.Variable(tf.constant(0.1, shape=[channels_out]), name="b")
-        conv = tf.nn.conv2d(input, w, strides=[1, 1, 1, 1], padding="SAME")
+        conv = tf.nn.conv2d(x, w, strides=[1, 1, 1, 1], padding="SAME")
         act = tf.nn.relu(conv + b)
         tf.summary.histogram("weights", w)
         tf.summary.histogram("biases", b)
         tf.summary.histogram("activations", act)
         return tf.nn.max_pool(act, ksize=[1,2,2,1], strides=[1,2,2,1], padding="SAME")
 
-def fc_layer(input, channels_in, channels_out, name="fc"):
+def fc_layer(x, channels_in, channels_out, name="fc"):
     with tf.name_scope(name):
         w = tf.Variable(tf.truncated_normal([channels_in, channels_out], stddev=0.1), name="W")
         b = tf.Variable(tf.constant(0.1, shape=[channels_out]), name="b")
-        act = tf.nn.relu(tf.matmul(input, w) + b)
+        act = tf.nn.relu(tf.matmul(x, w) + b)
         tf.summary.histogram("weights", w)
         tf.summary.histogram("biases", b)
         tf.summary.histogram("activations", act)
@@ -81,14 +81,14 @@ def model(learning_rate, use_two_fully_connected_layers, use_two_conv_layers, ru
     saver = tf.train.Saver()
     
     sess.run(tf.global_variables_initializer())
-    writer = tf.summary.FileWriter(oneliners.test_results_path+"mnist_demo/"+run_name+"/")
+    writer = tf.summary.FileWriter(oneliners.TEST_RESULTS_PATH+"mnist_demo/"+run_name+"/")
     writer.add_graph(sess.graph)
     
     config = tf.contrib.tensorboard.plugins.projector.ProjectorConfig()
     embedding_config = config.embeddings.add()
     embedding_config.tensor_name = embedding.name
-    embedding_config.sprite.image_path = oneliners.test_results_path+"mnist_demo/"+run_name+"/" + 'sprite_1024.png'
-    embedding_config.metadata_path = oneliners.test_results_path+"mnist_demo/"+run_name+"/" + 'labels_1024.tsv'
+    embedding_config.sprite.image_path = oneliners.TEST_RESULTS_PATH+"mnist_demo/"+run_name+"/" + 'sprite_1024.png'
+    embedding_config.metadata_path = oneliners.TEST_RESULTS_PATH+"mnist_demo/"+run_name+"/" + 'labels_1024.tsv'
     # Specify the width and height of a single thumbnail.
     embedding_config.sprite.single_image_dim.extend([28, 28])
     tf.contrib.tensorboard.plugins.projector.visualize_embeddings(writer, config)
@@ -102,7 +102,7 @@ def model(learning_rate, use_two_fully_connected_layers, use_two_conv_layers, ru
         
         if i % 100 == 0:
             sess.run(assignment, feed_dict={x: mnist.test.images[:1024], y: mnist.test.labels[:1024]})
-            saver.save(sess, os.path.join(oneliners.test_results_path+"mnist_demo/"+run_name+"/", "model.ckpt"), i)
+            saver.save(sess, os.path.join(oneliners.TEST_RESULTS_PATH+"mnist_demo/"+run_name+"/", "model.ckpt"), i)
         
         sess.run(train_step, feed_dict={x: batch[0], y: batch[1]})
     

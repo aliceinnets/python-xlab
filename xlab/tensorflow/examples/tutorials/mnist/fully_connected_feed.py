@@ -201,8 +201,8 @@ if __name__ == '__main__':
     parser.add_argument('--hidden1', type=int, default=128, help='Number of units in hidden layer 1.')
     parser.add_argument('--hidden2', type=int, default=32, help='Number of units in hidden layer 2.')
     parser.add_argument('--batch_size', type=int, default=100, help='Batch size.  Must divide evenly into the dataset sizes.')
-    parser.add_argument('--input_data_dir', type=str, default=oneliners.test_results_path+'/tensorflow/mnist/input_data', help='Directory to put the input data.')
-    parser.add_argument('--log_dir', type=str, default=oneliners.test_results_path+'/tensorflow/mnist/logs/fully_connected_feed', help='Directory to put the log data.')
+    parser.add_argument('--input_data_dir', type=str, default=oneliners.TEST_RESULTS_PATH+'/tensorflow/mnist/input_data', help='Directory to put the input data.')
+    parser.add_argument('--log_dir', type=str, default=oneliners.TEST_RESULTS_PATH+'/tensorflow/mnist/logs/fully_connected_feed', help='Directory to put the log data.')
     parser.add_argument('--fake_data', default=False, help='If true, uses fake data for unit testing.', action='store_true')
     
     FLAGS, unparsed = parser.parse_known_args()
