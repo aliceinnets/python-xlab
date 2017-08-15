@@ -31,7 +31,7 @@ def fc_layer(x, channels_in, channels_out, name="fc"):
         return act
 
 def model(learning_rate, use_two_fully_connected_layers, use_two_conv_layers, run_name):
-    mnist = tf.contrib.learn.datasets.mnist.read_data_sets(oneliners.test_results_path + 'mnist_data/', one_hot=True)
+    mnist = tf.contrib.learn.datasets.mnist.read_data_sets(oneliners.TEST_RESULTS_PATH + 'mnist_data/', one_hot=True)
     
     tf.reset_default_graph()
     sess = tf.Session()

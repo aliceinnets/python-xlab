@@ -65,6 +65,7 @@ def remove_all(path):
             else:
                 remove_all(path+file+'/')
         os.rmdir(path)
-        
-    
+
+def dirname(file):
+    return os.path.dirname(os.path.abspath(file))
     
