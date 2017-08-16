@@ -45,8 +45,8 @@ sigma_f_low = sigma_f*1e-2
 sigma_f_high = sigma_f*1e2
 
 sigma_x = np.mean(X)
-sigma_x_low = sigma_x*1e-3
-sigma_x_high = sigma_x*1e3
+sigma_x_low = sigma_x*1e-2
+sigma_x_high = sigma_x*1e2
 sigma_x = np.mean(X, axis = 0)
 # sigma_x_low = np.mean(sigma_x*1e-1)
 # sigma_x_high = np.mean(sigma_x*1e1)
@@ -57,7 +57,7 @@ sigma_y_high = sigma_f_high*1e-3
  
 # kernel = sigma_f * RBF(length_scale=sigma_x) + WhiteKernel(noise_level=sigma_y)
 kernel = sigma_f * RBF(length_scale=sigma_x, length_scale_bounds=(sigma_x_low, sigma_x_high)) + WhiteKernel(noise_level=sigma_y, noise_level_bounds=(sigma_y_low, sigma_y_high))
-gp = GaussianProcessRegressor(kernel=kernel, alpha=1e-10, normalize_y=True).fit(X, y)
+gp = GaussianProcessRegressor(kernel=kernel, alpha=1e-10, normalize_y=False).fit(X, y)
  
 y_mean, y_cov = gp.predict(X_test, return_cov=True)
  
@@ -72,8 +72,8 @@ y_mean, y_cov = gp.predict(X_test, return_cov=True)
 # log_evidence = np.array(log_evidence).T
 
 
-# time = strftime("%Y%m%d%H%M%S", gmtime())
-# submission = pd.read_csv(DATA_FOLDER+"sample_submission.csv")
-# submission["SalePrice"] = y_mean
-# submission.to_csv(DATA_FOLDER+"submission-"+time+".csv", index=False)
-# shutil.copy(os.path.abspath(__file__), DATA_FOLDER+"submission-"+time+".py")
+time = strftime("%Y%m%d%H%M%S", gmtime())
+submission = pd.read_csv(DATA_FOLDER+"sample_submission.csv")
+submission["SalePrice"] = y_mean
+submission.to_csv(DATA_FOLDER+"submission-"+time+".csv", index=False)
+shutil.copy(os.path.abspath(__file__), DATA_FOLDER+"submission-"+time+".py")

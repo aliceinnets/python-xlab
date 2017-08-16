@@ -57,7 +57,7 @@ sigma_y_high = sigma_f_high*1e-3
  
 # kernel = sigma_f * RBF(length_scale=sigma_x) + WhiteKernel(noise_level=sigma_y)
 kernel = sigma_f * RBF(length_scale=sigma_x, length_scale_bounds=(sigma_x_low, sigma_x_high)) + WhiteKernel(noise_level=sigma_y, noise_level_bounds=(sigma_y_low, sigma_y_high))
-gp = GaussianProcessRegressor(kernel=kernel, alpha=1e-10, normalize_y=True).fit(X, y)
+gp = GaussianProcessRegressor(kernel=kernel, alpha=1e-10, normalize_y=False).fit(X, y)
  
 y_mean, y_cov = gp.predict(X_test, return_cov=True)
  

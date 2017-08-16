@@ -45,9 +45,9 @@ sigma_f_low = sigma_f*1e-2
 sigma_f_high = sigma_f*1e2
 
 sigma_x = np.mean(X)
-sigma_x_low = sigma_x*1e-3
-sigma_x_high = sigma_x*1e3
-sigma_x = np.mean(X, axis = 0)
+sigma_x_low = sigma_x*1e-2
+sigma_x_high = sigma_x*1e2
+# sigma_x = np.std(X, axis = 0)
 # sigma_x_low = np.mean(sigma_x*1e-1)
 # sigma_x_high = np.mean(sigma_x*1e1)
  
@@ -57,23 +57,24 @@ sigma_y_high = sigma_f_high*1e-3
  
 # kernel = sigma_f * RBF(length_scale=sigma_x) + WhiteKernel(noise_level=sigma_y)
 kernel = sigma_f * RBF(length_scale=sigma_x, length_scale_bounds=(sigma_x_low, sigma_x_high)) + WhiteKernel(noise_level=sigma_y, noise_level_bounds=(sigma_y_low, sigma_y_high))
-gp = GaussianProcessRegressor(kernel=kernel, alpha=1e-10, normalize_y=True).fit(X, y)
+gp = GaussianProcessRegressor(kernel=kernel, alpha=1e-10, normalize_y=False).fit(X, y)
  
 y_mean, y_cov = gp.predict(X_test, return_cov=True)
  
 # sigma_f_num_grid = 25
 # sigma_x_num_grid = 5
-#   
+#  
 # sigma_f_grid = np.linspace(sigma_f_low, sigma_f_high, sigma_f_num_grid)
 # sigma_x_grid = np.linspace(sigma_x_low, sigma_x_high, sigma_x_num_grid)
 # sigma_f_mesh, sigma_x_mesh = np.meshgrid(sigma_f_grid, sigma_x_grid) 
-#   
+#  
 # log_evidence = [[gp.log_marginal_likelihood(np.log([sigma_f_mesh[i,j],sigma_x_mesh[i,j],1e-3*sigma_f_mesh[i,j]])) for i in range(sigma_f_mesh.shape[0])] for j in range(sigma_f_mesh.shape[1])]
 # log_evidence = np.array(log_evidence).T
 
+time = strftime("%Y%m%d%H%M%S", gmtime())
 
-# time = strftime("%Y%m%d%H%M%S", gmtime())
-# submission = pd.read_csv(DATA_FOLDER+"sample_submission.csv")
-# submission["SalePrice"] = y_mean
-# submission.to_csv(DATA_FOLDER+"submission-"+time+".csv", index=False)
-# shutil.copy(os.path.abspath(__file__), DATA_FOLDER+"submission-"+time+".py")
+submission = pd.read_csv(DATA_FOLDER+"sample_submission.csv")
+submission["SalePrice"] = y_mean
+submission.to_csv(DATA_FOLDER+"submission-"+time+".csv", index=False)
+
+shutil.copy(os.path.abspath(__file__), DATA_FOLDER+"submission-"+time+".py")
