@@ -15,6 +15,14 @@ from matplotlib.colors import LogNorm
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, WhiteKernel
 
+from sklearn import linear_model
+from sklearn.feature_selection import RFE
+from sklearn.model_selection import train_test_split
+
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import f_regression
+from sklearn.model_selection import train_test_split
+
 from time import gmtime, strftime
 
 from util import oneliners
@@ -22,43 +30,91 @@ from util import oneliners
 DATA_FOLDER = oneliners.dirname(__file__)+"/House Prices Advanced Regression Techniques/"
 
 def main(_):
-    X, y, X_test = preprocess_data2()
-    #X, y, X_test = preprocess_data1(7)
-    #y_mean, y_cov, gp = inference1(X, y, X_test)
-    #filename, pyfilename = save(y_mean)   
+    data_train = pd.read_csv(DATA_FOLDER+"train.csv")
+    data_test = pd.read_csv(DATA_FOLDER+"test.csv")
     
-def preprocess_data2():
-    df_train = pd.read_csv(DATA_FOLDER+"train.csv")
-    df_test = pd.read_csv(DATA_FOLDER+"test.csv")
+    dim = 7
+    columns = component_analysis_by_corr(data_train, dim)
     
-
-def preprocess_data1(dim):
-    df_train = pd.read_csv(DATA_FOLDER+"train.csv")
-    df_test = pd.read_csv(DATA_FOLDER+"test.csv")
-        
+    ## Selected columns: ['OverallQual', 'BsmtFullBath', 'FullBath', 'KitchenAbvGr', 'GarageCars'] by linear model
     ## Selected columns: ['BsmtFinSF1', 'BsmtFinSF2', 'BsmtUnfSF', 'TotalBsmtSF', '2ndFlrSF']
-    columns = ['SalePrice', 'BsmtFinSF1', 'BsmtFinSF2', 'BsmtUnfSF', 'TotalBsmtSF', '2ndFlrSF'] 
-    data_train = np.array(df_train[columns])
-    data_test = np.array(df_test[columns[1:]])
+    ## columns = ['OverallQual', 'BsmtFullBath', 'FullBath', 'KitchenAbvGr', 'GarageCars']
     
-    corr_train = df_train.corr()
-    component_train = corr_train["SalePrice"].sort_values(ascending=False)
-     
-    data_train = np.array(df_train[component_train[:1+dim].index])
-    data_test = np.array(df_test[component_train[1:1+dim].index])
-     
+    data_train = np.array(data_train[columns])
+    data_test = np.array(data_test[columns[1:]])
+    
     y = data_train[:,0]
     X = data_train[:,1:]
     X_test = data_test
-     
+    
+    X, X_test = fill_nan_as_mean(X, X_test)
+    
+    y_mean, y_cov, gp = inference_by_gp(X, y, X_test)
+    
+#     filename, pyfilename = save(y_mean)    
+
+def component_analysis_by_corr(data_train, dim):    
+    corr_train = data_train.corr()
+    component_train = corr_train["SalePrice"].sort_values(ascending=False)
+    
+    return component_train[1:1+dim].index
+
+def component_analysis_by_linear_model():
+    train = pd.read_csv(DATA_FOLDER+'train.csv')
+    data = train.select_dtypes(include=[np.number]).interpolate().dropna()
+    X = data.drop(['SalePrice', 'Id'], axis=1)
+    y = np.log(train.SalePrice)
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42, test_size=.33)
+
+    lr = linear_model.LinearRegression()
+
+    rfe = RFE(lr, 5)
+    fit = rfe.fit(X_train, y_train)
+    print("Features: {features}".format(features=X.columns))
+    print("Num Features: {number_features}".format(number_features=fit.n_features_))
+    print("Selected Features: {support}".format(support=fit.support_))
+    print("Feature Ranking: {ranking}".format(ranking=fit.ranking_))
+
+    selected_columns = [column for column, selected in zip(X.columns, fit.support_) if selected]
+    print("Selected columns: {selected}".format(selected = selected_columns))
+    
+    return selected_columns
+
+def component_analysis_by_selectKBest():
+    train = pd.read_csv('train.csv')
+    data = train.select_dtypes(include=[np.number]).interpolate().dropna()
+    X = data.drop(['SalePrice', 'Id'], axis=1)
+    y = np.log(train.SalePrice)
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42, test_size=.33)
+
+    test = SelectKBest(score_func=f_regression, k=4)
+    fit = test.fit(X, y) # ValueError: Unknown label type - https://stackoverflow.com/questions/34246336/python-randomforest-unknown-label-error - only when using chi2 function
+    # fit = test.fit(X, np.asarray(y, dtype="|S6"))
+
+    np.set_printoptions(precision=3, suppress=True)
+
+    print("Features: {features}".format(features=X.columns))
+    print("Scores: {scores}".format(scores=fit.scores_))
+
+    values = [(value, float(score)) for value, score in sorted(zip(X.columns, fit.scores_), key=lambda x: x[1] * -1)]
+    #print(tabulate(values, ["column", "score"], tablefmt="plain", floatfmt=".4f"))
+
+    selected_features = fit.transform(X)
+    print("Features: {selected_features}".format(selected_features = selected_features))
+
+    return selected_features
+    
+def fill_nan_as_mean(X, X_test): 
     X_mean_test = np.nanmean(X_test,axis=0)
     nan_index = np.where(np.isnan(X_test))
     for i in range(len(nan_index[0])):
         X_test[nan_index[0][i],nan_index[1][i]] = X_mean_test[nan_index[1][i]]
     
-    return X, y, X_test
-
-def inference1(X, y, X_test):
+    return X, X_test
+    
+def inference_by_gp(X, y, X_test):
     sigma_f = np.mean(y)
     # sigma_f = np.std(y)
     sigma_f_low = sigma_f*1e-2
@@ -113,3 +169,5 @@ def save(y_test):
     
     return filename, pyfilename
     
+    
+if __name__ == "__main__": main(_)
