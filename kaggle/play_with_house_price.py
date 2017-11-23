@@ -34,7 +34,9 @@ def main(_):
     data_test = pd.read_csv(DATA_FOLDER+"test.csv")
     
     dim = 7
-    columns = component_analysis_by_corr(data_train, dim)
+#     columns = component_analysis_by_corr(data_train, dim)
+#     columns = component_analysis_by_linear_model();
+    columns = component_analysis_by_selectKBest()
     
     ## Selected columns: ['OverallQual', 'BsmtFullBath', 'FullBath', 'KitchenAbvGr', 'GarageCars'] by linear model
     ## Selected columns: ['BsmtFinSF1', 'BsmtFinSF2', 'BsmtUnfSF', 'TotalBsmtSF', '2ndFlrSF']
@@ -49,7 +51,23 @@ def main(_):
     
     X, X_test = fill_nan_as_mean(X, X_test)
     
-    y_mean, y_cov, gp = inference_by_gp(X, y, X_test)
+    X_train, X_train_test, y_train, y_train_test = train_test_split(X, y, random_state=42, test_size=.33)
+    
+    y_train_mean, y_train_cov, gp_train = inference_by_gp(X_train, y_train, X_train_test)
+    y_mean, y_cov, gp = inference_by_gp(X_train, y_train, X_test)
+    
+    plt.figure()
+    plt.subplot(2,2,1)
+    plt.plot(y_train_test,'.')
+    plt.plot(y_train_mean)
+    plt.grid()
+    plt.subplot(2,2,2)
+    plt.scatter(y_train_test,y_train_mean)
+    plt.grid()
+    plt.subplot(2,2,3)
+    plt.plot(y_mean)
+    plt.grid()
+    plt.show()
     
 #     filename, pyfilename = save(y_mean)    
 
@@ -82,7 +100,7 @@ def component_analysis_by_linear_model():
     return selected_columns
 
 def component_analysis_by_selectKBest():
-    train = pd.read_csv('train.csv')
+    train = pd.read_csv(DATA_FOLDER+'train.csv')
     data = train.select_dtypes(include=[np.number]).interpolate().dropna()
     X = data.drop(['SalePrice', 'Id'], axis=1)
     y = np.log(train.SalePrice)
